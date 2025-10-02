@@ -1,28 +1,41 @@
-@description('Storage Account type')
-@allowed([
-  'Standard_LRS'
-  'Standard_GRS'
-  'Standard_ZRS'
-  'Premium_LRS'
-])
-param storageAccountsku string = 'Standard_LRS'
-
-@description('Location for all resources.')
 param location string = resourceGroup().location
+param storageAccountName string = 'toylaunch${uniqueString(resourceGroup().id)}'
+param appServiceAppName string = 'toylaunch${uniqueString(resourceGroup().id)}'
+var appServicePlanName = 'toy-product-launch-plan'
+@allowed([
+  'nonprod'
+  'prod'
+])
 
-var storageAccountName = '${uniqueString(resourceGroup().id)}storage'
+param environmentType string
+var storageAccountSkuName = (environmentType == 'prod') ? 'Standard_GRS' : 'Standard_LRS'
+var appServicePlanSkuName = (environmentType == 'prod') ? 'P2v3' : 'F1'
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-04-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   name: storageAccountName
   location: location
   sku: {
-    name: storageAccountsku
+    name: storageAccountSkuName
   }
   kind: 'StorageV2'
-  tags: {
-    ObjectName: storageAccountName
+  properties: {
+    accessTier: 'Hot'
   }
-  properties: {}
 }
 
-output storageAccountName string = storageAccountName
+resource appServicePlan 'Microsoft.Web/serverfarms@2024-11-01' = {
+  name: appServicePlanName
+  location: location
+  sku: {
+    name: appServicePlanSkuName
+  }
+}
+
+resource appServiceApp 'Microsoft.Web/sites@2024-11-01' = {
+  name: appServiceAppName
+  location: location
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+  }
+}
