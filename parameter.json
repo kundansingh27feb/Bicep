@@ -1,0 +1,14 @@
+{
+  "type": "Microsoft.Batch/batchAccounts",
+  "apiVersion": "2024-02-01",
+  "name": "[parameters('batchAccountName')]",
+  "location": "[parameters('location')]",
+  "tags": {
+    "ObjectName": "[parameters('batchAccountName')]"
+  },
+  "properties": {
+    "autoStorage": {
+      "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+    }
+  }
+}
